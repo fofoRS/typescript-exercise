@@ -1,4 +1,4 @@
-import { createPricer } from "./pricerCalculator";
+import { createPricer } from "./pricer";
 
 it('provides the latest price given the options selected so far', () => {
     // starting a coffee order

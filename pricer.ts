@@ -20,8 +20,8 @@ export const createPricer = (): Pricer => {
 
 
     interface PricerState {
-        selectedSizeOptionPrice : OptionPrice
-        selectedCreamerOption : OptionPrice
+        selectedSizeOptionPrice : OptionPrice | null;
+        selectedCreamerOption : OptionPrice | null;
     }
 
     interface OptionPrice {
@@ -30,23 +30,23 @@ export const createPricer = (): Pricer => {
     }
 
     // size option prices
-    const smallOptionPrice : OptionPrice =  {option: 'small', price: 1.00}
-    const mediumOptionPrice : OptionPrice =  {option: 'medium', price: 1.50}
-    const largeOptionPrice : OptionPrice =  {option: 'large', price: 2.00}
+    const smallOptionPrice : OptionPrice =  {option: 'small', price: 1.00};
+    const mediumOptionPrice : OptionPrice =  {option: 'medium', price: 1.50};
+    const largeOptionPrice : OptionPrice =  {option: 'large', price: 2.00};
 
     // creamer option prices
-    const noneOptionPrice : OptionPrice =  {option: 'none', price: 0.00}
-    const dairyOptionPrice : OptionPrice =  {option: 'dairy', price: 0.25}
-    const nonDairyOptionPrice : OptionPrice =  {option: 'non-dairy', price: 0.50}
+    const noneOptionPrice : OptionPrice =  {option: 'none', price: 0.00};
+    const dairyOptionPrice : OptionPrice =  {option: 'dairy', price: 0.25};
+    const nonDairyOptionPrice : OptionPrice =  {option: 'non-dairy', price: 0.50};
 
 
-    const state : PricerState = {
-        selectedSizeOptionPrice : noneOptionPrice,
-        selectedCreamerOption : noneOptionPrice,
+    let state : PricerState = {
+        selectedSizeOptionPrice : null,
+        selectedCreamerOption : null,
     }
 
 
-    const pricesCatalog: Map<Category,Array<OptionPrice>> = new Map([
+    const pricesCatalog: Map<Category,ReadonlyArray<OptionPrice>> = new Map([
         ['size',[
             smallOptionPrice,
             mediumOptionPrice,
@@ -61,18 +61,22 @@ export const createPricer = (): Pricer => {
 
     return (category: Category, option: Option): Price  => {
 
-        const defaultOptionPrice : OptionPrice = smallOptionPrice
+        // trusting in argument values.
+        // No fallback to default values as this might creates silent  side effects and fallback default values are not described in the exercise.
 
-        const categoryOptions : Array<OptionPrice> = pricesCatalog.get(category) ?? [defaultOptionPrice];
-        const optionPrice : OptionPrice = categoryOptions.find((optionPriceItem) => optionPriceItem.option === option) ?? defaultOptionPrice;
+        const categoryOptions : ReadonlyArray<OptionPrice> = pricesCatalog.get(category)!; 
+        const optionPrice : OptionPrice = categoryOptions.find((optionPriceItem) => optionPriceItem.option === option)!;
 
         if (category === 'size') {
-            state.selectedSizeOptionPrice = optionPrice;
-        } else {
-            state.selectedCreamerOption = optionPrice;
+            state = {...state, selectedSizeOptionPrice: optionPrice};
+        } else if (category === 'creamer') {
+            state = {...state, selectedCreamerOption: optionPrice};
         }
 
-        return state.selectedSizeOptionPrice.price + state.selectedCreamerOption.price;
+        const selectedSizePrice = state?.selectedSizeOptionPrice?.price ?? 0.00;
+        const selectedCreamerPrice = state?.selectedCreamerOption?.price ?? 0.00;
+    
+        return selectedSizePrice + selectedCreamerPrice;
         
     }
 }
